@@ -6,11 +6,11 @@ const optionSchema = new mongoose.Schema({
         required:true
     },
     votes:{
-        type:Number
+        type:Number,
+        default:0
     },
     link_to_vote:{
-        type:String,
-        required:true
+        type:String
     },
     question:{
         type:mongoose.Schema.Types.ObjectId,

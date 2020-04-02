@@ -12,6 +12,10 @@ module.exports.create = function(req,res){
         Question.create({
             title:req.body.title
         });
+
+        return res,json(200, {
+            message:"question created successfully"
+        })
     }
     catch(err){
         if(err){
@@ -30,16 +34,19 @@ module.exports.createOption = async function(req,res){
     }
 
     try{
-        // fi nd question by id
+        // find question by id
         const question =  await Question.findById(req.params.id);
 
         //if question is found
         if(question){
             let newOption = await Option.create({
                 text:req.body.text,
-                link_to_vote:req.body.link
+                question:req.params.id
             });
-    
+
+            newOption.link_to_vote = "http://"+req.headers.host+'/options'+ '/'+ newOption._id + "/add_vote";
+            
+            // push the option into the specific question
             question.options.push(newOption);
             question.save();
 
@@ -67,7 +74,23 @@ module.exports.delete = async function(req,res){
 
     try{
         // find question by params 
-        let question = Question.findById(req.params.id);
+        let question = await Question
+                            .findById(req.params.id)
+                            .populate({path:'options'});
+        
+        //if question is not present
+        if(!question){
+            return res.json(400, {
+                message:"question is not present please do check ID"
+            });
+        }
+
+        // if any option has more than 0 votes you cant delete that question
+        if(question.options.votes >0){
+            return res.json(400, {
+                message: "options of this question contain votes , so can't delete"
+            })
+        }
         // delete options associated with the question
         await Option.deleteMany({question:req.params.id});
         question.remove();
@@ -80,5 +103,28 @@ module.exports.delete = async function(req,res){
         if(err){
             res.json(500, "bad request");
         }
+    }
+}
+
+module.exports.getQuestion = async function(req,res){
+    try{
+        // simple, get the question using params 
+        let question = Question
+                       .findById(req.params.id)
+                       .populate({
+                           path:'options'
+                       });
+
+        if(!question){
+            return res.json(400, "please check your ID");
+        }
+        
+        // return question along with its options
+        return res.json(200, question);
+    }
+    catch(err){
+        return res.json(500, {
+            message:"bad request error"
+        })
     }
 }
