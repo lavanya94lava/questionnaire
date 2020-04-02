@@ -4,15 +4,22 @@ const Option = require('../models/option');
 module.exports.delete = async function(req,res){
 
     try{
+        // find the option using params
         const option = await Option.findById(req.params.id);
+
+        // save the question id of option to delete it from question Schema too.
         let questionId = option.question;
+
+        // if this option has votes then, you cant delete it
         if(option.votes >0){
             res.json(400, {
                 message:"Can't delete this option as it has votes!"
             });
         }
+
         option.remove();
 
+        //update the question schema by pulling that particular option out of question Schema
         let question = await Question.findByIdAndUpdate(questionId, {$pull:{ options: req.params.id}});
 
         return res.json(200, {
