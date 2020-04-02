@@ -11,6 +11,10 @@ const optionSchema = new mongoose.Schema({
     link_to_vote:{
         type:String,
         required:true
+    },
+    question:{
+        type:mongoose.Schema.Types.ObjectId,
+        required:true
     }
 },{
     timestamps:true
