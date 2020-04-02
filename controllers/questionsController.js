@@ -109,7 +109,7 @@ module.exports.delete = async function(req,res){
 module.exports.getQuestion = async function(req,res){
     try{
         // simple, get the question using params 
-        let question = Question
+        let question = await Question
                        .findById(req.params.id)
                        .populate({
                            path:'options'

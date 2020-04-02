@@ -14,6 +14,7 @@ const optionSchema = new mongoose.Schema({
     },
     question:{
         type:mongoose.Schema.Types.ObjectId,
+        ref:'Option',
         required:true
     }
 },{

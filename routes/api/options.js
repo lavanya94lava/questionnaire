@@ -4,6 +4,6 @@ const optionsController = require('../../controllers/optionsController');
 
 
 router.get('/:id/delete',optionsController.delete);
-router.put(':id/add_vote',);
+router.put(':id/add_vote',optionsController.addVote);
 
 module.exports = router;
