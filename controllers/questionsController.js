@@ -2,18 +2,21 @@ const Question = require('../models/question');
 const Option = require('../models/option');
 
 
-module.exports.create = function(req,res){
+module.exports.create = async function(req,res){
+    
     if(!req.body.title){
         return res.json(200,{
             message:"please fill in the title"
         });
     }
     try{
-        Question.create({
+        console.log(req.body);
+        const newQuestion = await Question.create({
             title:req.body.title
         });
 
-        return res,json(200, {
+        return res.json(200, {
+            question:newQuestion,
             message:"question created successfully"
         })
     }
@@ -27,9 +30,9 @@ module.exports.create = function(req,res){
 }
 
 module.exports.createOption = async function(req,res){
-    if(!req.body.text||!req.body.link_to_vote){
+    if(!req.body.text){
         return res.json(200,{
-            message:"Please fill all the madantory fields"
+            message:"Please fill all the mandatory fields"
         });
     }
 
@@ -43,14 +46,19 @@ module.exports.createOption = async function(req,res){
                 text:req.body.text,
                 question:req.params.id
             });
-
+            // add the link for voting 
             newOption.link_to_vote = "http://"+req.headers.host+'/options'+ '/'+ newOption._id + "/add_vote";
-            
+            // save after making the modification 
+            newOption.save();
             // push the option into the specific question
             question.options.push(newOption);
             question.save();
 
             return res.json(200, {
+                data:{
+                    question:question,
+                    option:newOption
+                },
                 message:"option created successfully"
             });
         }
@@ -73,18 +81,19 @@ module.exports.createOption = async function(req,res){
 module.exports.delete = async function(req,res){
 
     try{
+        
         // find question by params 
         let question = await Question
-                            .findById(req.params.id)
-                            .populate({path:'options'});
+        .findById(req.params.id)
+        .populate({path:"options"});
         
+        console.log("reaching questions.options.votes");
         //if question is not present
         if(!question){
             return res.json(400, {
                 message:"question is not present please do check ID"
             });
         }
-
         // if any option has more than 0 votes you cant delete that question
         if(question.options.votes >0){
             return res.json(400, {

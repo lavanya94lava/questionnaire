@@ -1,4 +1,4 @@
-const Question = require('../models/option');
+const Question = require('../models/question');
 const Option = require('../models/option');
 
 module.exports.delete = async function(req,res){
@@ -9,10 +9,9 @@ module.exports.delete = async function(req,res){
 
         // save the question id of option to delete it from question Schema too.
         let questionId = option.question;
-
         // if this option has votes then, you cant delete it
         if(option.votes >0){
-            res.json(400, {
+            return res.json(400, {
                 message:"Can't delete this option as it has votes!"
             });
         }
@@ -23,6 +22,7 @@ module.exports.delete = async function(req,res){
         let question = await Question.findByIdAndUpdate(questionId, {$pull:{ options: req.params.id}});
 
         return res.json(200, {
+            question:question.populate({path:'options'}),
             message:"option deleted successfully"
         });
     }
